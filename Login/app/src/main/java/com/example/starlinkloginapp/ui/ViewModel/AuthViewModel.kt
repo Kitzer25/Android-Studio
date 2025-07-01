@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 class AuthViewModel: ViewModel(){
     private val repo = AuthRepository()
 
+    private val _correoUsuario = MutableStateFlow<String?>(null)
+    val correoUsuario: StateFlow<String?> = _correoUsuario
 
     private val  _status = MutableStateFlow<String?>(null)
     val status: StateFlow<String?> = _status
@@ -22,6 +24,7 @@ class AuthViewModel: ViewModel(){
         result
             .onSuccess { 
                 Instance.token = it.token
+                _correoUsuario.value = correo
                 _status.value = "OK"
             }
             .onFailure { e -> 

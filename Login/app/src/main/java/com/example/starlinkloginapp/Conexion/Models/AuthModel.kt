@@ -24,3 +24,7 @@ data class RegisterResponse(
     @Json(name = "apellido") val apellido: String,
     @Json(name = "correo") val correo: String
 )
+data class ImagenPayload(
+    val correo: String,
+    val imagen: String
+)

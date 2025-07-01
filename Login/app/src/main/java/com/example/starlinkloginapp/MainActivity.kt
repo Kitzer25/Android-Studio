@@ -6,6 +6,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.starlinkloginapp.ui.theme.StarlinkLoginTheme
@@ -16,6 +18,7 @@ import com.example.starlinkloginapp.ui.ViewModel.AuthViewModel
 import com.example.starlinkloginapp.ui.cameraX.CameraScreen
 import com.example.starlinkloginapp.ui.screens.LoginScreen
 import com.example.starlinkloginapp.ui.screens.RegisterScreen
+import androidx.compose.runtime.getValue
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,6 +35,7 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     val navController = rememberNavController()
     val authVM: AuthViewModel = viewModel()
+    val correo by authVM.correoUsuario.collectAsState()
 
     NavHost(navController, startDestination = "login") {
         composable("login") {
@@ -43,8 +47,18 @@ fun AppNavigation() {
         /*composable("principal") {
             PrincipalScreen(navController)
         }*/
-        composable("camera"){
-            CameraScreen(navController)
+        composable("camera") {
+            correo?.let {
+                CameraScreen(
+                    navController = navController,
+                    correoUsuario = it)
+            }?:run {
+                LaunchedEffect(Unit) {
+                    navController.navigate("login") {
+                        popUpTo("camera") { inclusive = true }
+                    }
+                }
+            }
         }
     }
 }

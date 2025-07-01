@@ -44,45 +44,39 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.starlinkloginapp.Conexion.Models.ImagenPayload
 import com.example.starlinkloginapp.MQTT.MqttClientManager
-import kotlinx.coroutines.coroutineScope
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
+import kotlin.jvm.java
 
 @Composable
-fun CameraScreen(navController: NavController) {
+fun CameraScreen(
+    navController: NavController,
+    correoUsuario: String
+) {
+    val context            = LocalContext.current
+    val lifecycleOwner     = LocalLifecycleOwner.current
+    val cameraProviderFut  = remember { ProcessCameraProvider.getInstance(context) }
+    val imageCaptureRef    = remember { mutableStateOf<ImageCapture?>(null) }
+    var requestPermission  by remember { mutableStateOf(true) }
+    val coroutineScope     = rememberCoroutineScope()
 
-    /* ---------- Contextos y estados ---------- */
-    val context           = LocalContext.current
-    val lifecycleOwner    = LocalLifecycleOwner.current
-    val cameraProviderFut = remember { ProcessCameraProvider.getInstance(context) }
-    val imageCaptureRef   = remember { mutableStateOf<ImageCapture?>(null) }
-    var requestPermission by remember { mutableStateOf(true) }
-    val coroutineScope    = rememberCoroutineScope()
 
-    val mqttManagerState = remember { mutableStateOf<MqttClientManager?>(null) }
-
-    val onMessageReceived: (String) -> Unit = { msg ->
-        if (msg.equals("fotografiar", ignoreCase = true)) {
-            mqttManagerState.value?.let { manager ->
-                capturar(imageCaptureRef.value, context, manager)
-            }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        if (mqttManagerState.value == null) {
-            mqttManagerState.value = MqttClientManager(
+    val mqttManagerState = remember {
+        mutableStateOf(
+            MqttClientManager(
                 serverUri = "tcp://161.132.48.224:1883",
                 topic     = "default",
-                onMessageReceived = {}
+                onMessageReceived = { } // aún no usamos la suscripción
             )
-        }
+        )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
 
+    Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
             factory = { ctx ->
                 val previewView = PreviewView(ctx)
@@ -117,6 +111,7 @@ fun CameraScreen(navController: NavController) {
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+
             Button(
                 onClick = { navController.navigate("login") },
                 modifier = Modifier.weight(1f)
@@ -127,11 +122,14 @@ fun CameraScreen(navController: NavController) {
             Button(
                 onClick = {
                     coroutineScope.launch {
-                        mqttManagerState.value?.publish("Android/IoT", "")
+                        mqttManagerState.value.publish("Android/IoT", "")
                         delay(1100)
-                        mqttManagerState.value?.let {
-                            capturar(imageCaptureRef.value, context, it)
-                        }
+                        capturar(
+                            imageCaptureRef.value,
+                            context,
+                            mqttManagerState.value,
+                            correoUsuario
+                        )
                     }
                 },
                 modifier = Modifier.weight(1f)
@@ -140,13 +138,12 @@ fun CameraScreen(navController: NavController) {
     }
 
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { granted ->
-            if (!granted) {
-                Toast.makeText(context, "Permiso de cámara denegado", Toast.LENGTH_LONG).show()
-            }
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (!granted) {
+            Toast.makeText(context, "Permiso de cámara denegado", Toast.LENGTH_LONG).show()
         }
-    )
+    }
 
     LaunchedEffect(Unit) {
         if (requestPermission) {
@@ -156,15 +153,15 @@ fun CameraScreen(navController: NavController) {
     }
 
     DisposableEffect(Unit) {
-        onDispose { mqttManagerState.value?.disconnect() }
+        onDispose { mqttManagerState.value.disconnect() }
     }
 }
-
 
 private fun capturar(
     imageCapture: ImageCapture?,
     ctx: Context,
-    mqtt: MqttClientManager
+    mqtt: MqttClientManager,
+    correoUsuario: String
 ) {
     if (imageCapture == null) {
         Toast.makeText(ctx, "Sin Captura", Toast.LENGTH_SHORT).show()
@@ -176,21 +173,29 @@ private fun capturar(
         "captura-${System.currentTimeMillis()}.jpg"
     )
 
-    val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+    val outputOpts = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
     imageCapture.takePicture(
-        outputOptions,
+        outputOpts,
         ContextCompat.getMainExecutor(ctx),
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(res: ImageCapture.OutputFileResults) {
+
+                /* ---- Construir payload JSON con Moshi ---- */
                 val base64 = Base64.encodeToString(photoFile.readBytes(), Base64.NO_WRAP)
-                mqtt.publish("Android/Fotografia", base64)
+                val payload = ImagenPayload(correoUsuario, base64)
+
+                val moshi   = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+                val adapter = moshi.adapter(ImagenPayload::class.java)
+                val json    = adapter.toJson(payload)
+
+                mqtt.publish("Android/Fotografia", json)
                 Toast.makeText(ctx, "Imagen enviada", Toast.LENGTH_SHORT).show()
             }
+
             override fun onError(exc: ImageCaptureException) {
                 Toast.makeText(ctx, "Fallo al capturar: ${exc.message}", Toast.LENGTH_SHORT).show()
             }
         }
     )
 }
-
