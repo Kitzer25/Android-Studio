@@ -13,6 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.starlinkloginapp.ui.ViewModel.AuthViewModel
+import com.example.starlinkloginapp.ui.cameraX.CameraScreen
 import com.example.starlinkloginapp.ui.screens.LoginScreen
 import com.example.starlinkloginapp.ui.screens.RegisterScreen
 
@@ -39,8 +40,11 @@ fun AppNavigation() {
         composable("register") {
             RegisterScreen(authVM, navController)
         }
+        /*composable("principal") {
+            PrincipalScreen(navController)
+        }*/
         composable("camera"){
-            /* Agregar Función TODO*/
+            CameraScreen(navController)
         }
     }
 }
