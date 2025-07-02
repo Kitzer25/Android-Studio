@@ -2,9 +2,22 @@ package com.example.starlinkloginapp.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.example.starlinkloginapp.R
+
+val AlegreyaFont = FontFamily(
+    Font(R.font.alegreya_bold, FontWeight.Bold),
+    Font(R.font.alegreya_semibold, FontWeight.SemiBold)
+)
+
+val AlegreyaSansFont = FontFamily(
+    Font(R.font.alegreya_regular, FontWeight.Normal),
+    Font(R.font.alegreya_medium, FontWeight.Medium)
+)
+
 
 // Set of Material typography styles to start with
 val Typography = Typography(

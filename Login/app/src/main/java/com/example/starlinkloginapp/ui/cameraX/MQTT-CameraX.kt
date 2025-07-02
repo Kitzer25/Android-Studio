@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION", "INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION_WARNING")
 
 package com.example.starlinkloginapp.ui.cameraX
 
@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import java.io.File
 import android.util.Base64
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,9 +44,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.starlinkloginapp.Conexion.Models.ImagenPayload
 import com.example.starlinkloginapp.MQTT.MqttClientManager
+import com.example.starlinkloginapp.ui.ViewModel.ImageViewModel
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.delay
@@ -57,24 +60,38 @@ fun CameraScreen(
     navController: NavController,
     correoUsuario: String
 ) {
-    val context            = LocalContext.current
-    val lifecycleOwner     = LocalLifecycleOwner.current
-    val cameraProviderFut  = remember { ProcessCameraProvider.getInstance(context) }
-    val imageCaptureRef    = remember { mutableStateOf<ImageCapture?>(null) }
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val cameraProviderFut = remember { ProcessCameraProvider.getInstance(context) }
+    val imageCaptureRef = remember { mutableStateOf<ImageCapture?>(null) }
     var requestPermission  by remember { mutableStateOf(true) }
-    val coroutineScope     = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
 
 
-    val mqttManagerState = remember {
-        mutableStateOf(
-            MqttClientManager(
-                serverUri = "tcp://161.132.48.224:1883",
-                topic     = "default",
-                onMessageReceived = { } // aún no usamos la suscripción
-            )
+    /* ViewModel de Imágenes */
+    val imageVM: ImageViewModel = viewModel()
+    val navLista = remember { mutableStateOf(false) }
+
+    val mqttManager = remember {
+        MqttClientManager(
+            serverUri = "tcp://161.132.48.224:1883",
+            defaultTopic = "Android/Fotografia/Proceso",
+            onMessageReceived = { mensaje ->
+                if (!navLista.value) {
+                    Log.d("MQTT", "Mensaje recibido: $mensaje")
+                    Toast.makeText(context, "Llegó mensaje MQTT", Toast.LENGTH_SHORT).show()
+                    if (!navLista.value) {
+                        navLista.value = true
+                        imageVM.agregarImg(mensaje)
+                        navController.navigate("galery")
+                    }
+                    //navLista.value = true
+                    //imageVM.agregarImg(mensaje)
+                    //navController.navigate("galery")
+                }
+            }
         )
     }
-
 
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
@@ -122,12 +139,12 @@ fun CameraScreen(
             Button(
                 onClick = {
                     coroutineScope.launch {
-                        mqttManagerState.value.publish("Android/IoT", "")
+                        mqttManager.publish("Android/IoT", "")
                         delay(1100)
                         capturar(
                             imageCaptureRef.value,
                             context,
-                            mqttManagerState.value,
+                            mqttManager,
                             correoUsuario
                         )
                     }
@@ -153,7 +170,7 @@ fun CameraScreen(
     }
 
     DisposableEffect(Unit) {
-        onDispose { mqttManagerState.value.disconnect() }
+        onDispose { mqttManager.disconnect() }
     }
 }
 

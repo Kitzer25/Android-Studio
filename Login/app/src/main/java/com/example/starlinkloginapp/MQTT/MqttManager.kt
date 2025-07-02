@@ -11,44 +11,67 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import java.nio.charset.Charset
 
 
+
 class MqttClientManager(
     private val serverUri: String,
-    private val topic: String,
+    private val defaultTopic: String,
     private val onMessageReceived: (String) -> Unit
 ) {
+
     private lateinit var mqttClient: MqttClient
+    private val topicCallbacks = mutableMapOf<String, (String) -> Unit>()
 
     init {
         connect()
     }
 
-    private fun connect() {
+    fun connect() {
         try {
             mqttClient = MqttClient(serverUri, MqttClient.generateClientId(), MemoryPersistence())
-            val options = MqttConnectOptions()
-            options.isAutomaticReconnect = true
-            options.isCleanSession = false
-            options.userName="esp32"
-            options.password="tecsup123".toCharArray()
+
+            val options = MqttConnectOptions().apply {
+                isAutomaticReconnect = true
+                isCleanSession = false
+                userName = "esp32"
+                password = "tecsup123".toCharArray()
+            }
+
             mqttClient.connect(options)
 
             mqttClient.setCallback(object : MqttCallback {
-                override fun connectionLost(cause: Throwable?) {}
+                override fun connectionLost(cause: Throwable?) {
+                    println("MQTT conexión perdida: ${cause?.message}")
+                }
 
                 override fun messageArrived(topic: String?, message: MqttMessage?) {
-                    val receivedMessage = message?.toString()
-                    if (!receivedMessage.isNullOrEmpty()) {
-                        val utf8String = receivedMessage.toByteArray(Charset.forName("UTF-8"))
-                        val convertedString = String(utf8String, Charset.forName("UTF-8"))
-                        onMessageReceived.invoke(convertedString)
+                    val payload = message?.toString() ?: return
+                    val utf8 = payload.toByteArray(Charset.forName("UTF-8"))
+                    val content = String(utf8, Charset.forName("UTF-8"))
+
+                    // Verifica si hay un callback específico para ese topic
+                    topic?.let {
+                        topicCallbacks[it]?.invoke(content) ?: onMessageReceived(content)
                     }
                 }
 
-                override fun deliveryComplete(token: IMqttDeliveryToken?) {}
+                override fun deliveryComplete(token: IMqttDeliveryToken?) {
+                    // No se necesita nada aquí por ahora
+                }
             })
 
-            mqttClient.subscribe(topic, 0)
+            // Subscribir al tópico por defecto
+            mqttClient.subscribe(defaultTopic)
 
+        } catch (e: MqttException) {
+            e.printStackTrace()
+        }
+    }
+
+    fun subscribe(topic: String, callback: (String) -> Unit) {
+        try {
+            topicCallbacks[topic] = callback
+            if (!mqttClient.isConnected) connect()
+            mqttClient.subscribe(topic, 1)
         } catch (e: MqttException) {
             e.printStackTrace()
         }
@@ -56,15 +79,21 @@ class MqttClientManager(
 
     fun publish(topic: String, message: String) {
         try {
-            val mqttMessage = MqttMessage(message.toByteArray())
+            val mqttMessage = MqttMessage(message.toByteArray(Charset.forName("UTF-8")))
+            mqttMessage.qos = 1
             mqttClient.publish(topic, mqttMessage)
-        } catch (e: MqttException) { e.printStackTrace() }
+        } catch (e: MqttException) {
+            e.printStackTrace()
+        }
     }
 
+    fun isConnected(): Boolean = this::mqttClient.isInitialized && mqttClient.isConnected
 
     fun disconnect() {
         try {
-            mqttClient.disconnect()
+            if (mqttClient.isConnected) {
+                mqttClient.disconnect()
+            }
         } catch (e: MqttException) {
             e.printStackTrace()
         }

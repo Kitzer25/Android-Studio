@@ -1,4 +1,4 @@
-package com.example.starlinkloginapp.ui.screens
+package com.example.starlinkloginapp.ui.screens.access
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
