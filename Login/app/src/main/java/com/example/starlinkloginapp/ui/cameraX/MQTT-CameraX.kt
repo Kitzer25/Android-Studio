@@ -30,14 +30,21 @@ import java.io.File
 import android.util.Base64
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -65,11 +72,8 @@ fun CameraScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraProviderFut = remember { ProcessCameraProvider.getInstance(context) }
     val imageCaptureRef = remember { mutableStateOf<ImageCapture?>(null) }
-    var requestPermission  by remember { mutableStateOf(true) }
+    var requestPermission by remember { mutableStateOf(true) }
 
-
-    /* ViewModel de Imágenes */
-    val navGalery = remember { mutableStateOf(false) }
 
     val mqttManager = remember {
         MqttClientManager(
@@ -106,23 +110,16 @@ fun CameraScreen(
             modifier = Modifier.fillMaxSize()
         )
 
+        // Botón de captura estilo cámara
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .background(Color.Black.copy(alpha = 0.4f))
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(vertical = 24.dp),
+            horizontalArrangement = Arrangement.Center
         ) {
-
-            Button(
-                onClick = { navController.navigate("login") },
-                modifier = Modifier.weight(1f)
-            ) { Text("Regresar") }
-
-            Spacer(Modifier.width(16.dp))
-
-            Button(
+            IconButton(
                 onClick = {
                     coroutineScope.launch {
                         mqttManager.publish("Android/IoT", "")
@@ -135,21 +132,27 @@ fun CameraScreen(
                         )
                     }
                 },
-                modifier = Modifier.weight(1f)
-            ) { Text("Capturar") }
+                modifier = Modifier
+                    .size(72.dp)
+                    .background(Color.White, shape = CircleShape)
+                    .border(4.dp, Color.LightGray, CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CameraAlt,
+                    contentDescription = "Capturar",
+                    tint = Color.Black,
+                    modifier = Modifier.size(36.dp)
+                )
+            }
         }
     }
 
-    /* Suscriptor al Broker MQTT */
     LaunchedEffect(Unit) {
-        mqttManager.subscribe("Android/Fotografia/Proceso")
-        {
-            base64 ->
+        mqttManager.subscribe("Android/Fotografia/Proceso") { base64 ->
             coroutineScope.launch(Dispatchers.IO) {
                 try {
                     val bytes = Base64.decode(base64.trim(), Base64.DEFAULT)
-
-                    val dir  = context.getExternalFilesDir("galeria") ?: context.filesDir
+                    val dir = context.getExternalFilesDir("galeria") ?: context.filesDir
                     if (!dir.exists()) dir.mkdirs()
 
                     val file = File(dir, "img_${System.currentTimeMillis()}.jpg")
@@ -158,18 +161,10 @@ fun CameraScreen(
                     withContext(Dispatchers.Main) {
                         navController.navigate("galery")
                     }
-
                 } catch (e: Exception) {
                     Log.e("MQTT", "Error guardando imagen", e)
                 }
             }
-        }
-    }
-
-    LaunchedEffect(navGalery.value) {
-        if (navGalery.value){
-            navController.navigate("galery")
-            navGalery.value = false
         }
     }
 
