@@ -1,6 +1,8 @@
 package com.example.starlinkloginapp.ui.screens.access
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -13,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -36,12 +39,14 @@ fun StileLoginScreen(
     var password by rememberSaveable { mutableStateOf("") }
     val status by viewModel.status.collectAsState()
 
+    var isEmailError by remember { mutableStateOf(false) }
+    var isPasswordError by remember { mutableStateOf(false) }
+
     Surface(
         color = Color(0xFF253334),
         modifier = Modifier.fillMaxSize()
     ) {
         Box(Modifier.fillMaxSize()) {
-
             Image(
                 painter = painterResource(id = R.drawable.background),
                 contentDescription = null,
@@ -55,7 +60,6 @@ fun StileLoginScreen(
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 Image(
                     painter = painterResource(id = R.drawable.logotipo),
                     contentDescription = null,
@@ -79,7 +83,7 @@ fun StileLoginScreen(
                 )
 
                 Text(
-                    text = "Inicia sesión para accedes a las funciones de análisis",
+                    text = "Inicia sesión para acceder a las funciones de análisis",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontFamily = AlegreyaSansFont,
                         color = Color(0xff79939b)
@@ -89,24 +93,38 @@ fun StileLoginScreen(
                         .padding(bottom = 20.dp)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Correo electrónico") },
+                    onValueChange = {
+                        email = it
+                        isEmailError = false
+                    },
+                    label = {
+                        Text(
+                            "Correo electrónico",
+                            color = if (isEmailError) MaterialTheme.colorScheme.error else Color(0xFF18779B)
+                        )
+                    },
+                    isError = isEmailError,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
-                    leadingIcon = { Icon(Icons.Default.Email, null) },
+                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                    supportingText = {
+                        AnimatedVisibility(visible = isEmailError) {
+                            Text(
+                                text = "El correo no puede estar vacío",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = Color(0xFF18779B),
-                        cursorColor = MaterialTheme.colorScheme.primary,
+                        focusedBorderColor = if (isEmailError) MaterialTheme.colorScheme.error else Color(0xFF18779B),
+                        unfocusedBorderColor = if (isEmailError) MaterialTheme.colorScheme.error else Color(0xFF18779B),
+                        cursorColor = Color(0xFF18779B),
                         focusedTextColor = Color(0xFF18779B),
-                        unfocusedTextColor = Color(0xFF18779B),
-                        focusedLabelColor = Color(0xFF18779B),
-                        unfocusedLabelColor = Color(0xFF18779B)
+                        unfocusedTextColor = Color(0xFF18779B)
                     )
                 )
 
@@ -114,28 +132,85 @@ fun StileLoginScreen(
 
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Contraseña") },
+                    onValueChange = {
+                        password = it
+                        isPasswordError = false
+                    },
+                    label = {
+                        Text(
+                            "Contraseña",
+                            color = if (isPasswordError) MaterialTheme.colorScheme.error else Color(0xFF18779B)
+                        )
+                    },
                     visualTransformation = PasswordVisualTransformation(),
+                    isError = isPasswordError,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
-                    leadingIcon = { Icon(Icons.Default.Lock, null) },
+                    leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                    supportingText = {
+                        AnimatedVisibility(visible = isPasswordError) {
+                            Text(
+                                text = "La contraseña no puede estar vacía",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = Color(0xFF18779B),
-                        cursorColor = MaterialTheme.colorScheme.primary,
+                        focusedBorderColor = if (isPasswordError) MaterialTheme.colorScheme.error else Color(0xFF18779B),
+                        unfocusedBorderColor = if (isPasswordError) MaterialTheme.colorScheme.error else Color(0xFF18779B),
+                        cursorColor = Color(0xFF18779B),
                         focusedTextColor = Color(0xFF18779B),
-                        unfocusedTextColor = Color(0xFF18779B),
-                        focusedLabelColor = Color(0xFF18779B),
-                        unfocusedLabelColor = Color(0xFF18779B)
+                        unfocusedTextColor = Color(0xFF18779B)
                     )
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
 
+                if (!status.isNullOrEmpty() && status != "OK") {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.errorContainer,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = "Error",
+                                tint = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = when (status) {
+                                    "auth/invalid-credential" -> "Credenciales incorrectas. Verifica tu email y contraseña"
+                                    "auth/too-many-requests" -> "Demasiados intentos. Intenta más tarde"
+                                    else -> "Error: $status"
+                                },
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+
+
                 Button(
-                    onClick = { viewModel.login(email.trim(), password) },
+                    onClick = {
+                        isEmailError = email.isBlank()
+                        isPasswordError = password.isBlank()
+
+                        if (!isEmailError && !isPasswordError) {
+                            viewModel.login(email.trim(), password)
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -149,15 +224,9 @@ fun StileLoginScreen(
 
                 if (status == "OK") {
                     LaunchedEffect(Unit) {
-                        navController.navigate("camera")
+                        navController.navigate("principal")
                         viewModel.clearStatus()
                     }
-                } else if (!status.isNullOrEmpty()) {
-                    Text(
-                        text = "ERROR: $status",
-                        color = Color.Red,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
                 }
 
                 Spacer(Modifier.height(16.dp))

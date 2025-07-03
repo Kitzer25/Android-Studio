@@ -20,6 +20,7 @@ import com.example.starlinkloginapp.ui.screens.access.StileLoginScreen
 import com.example.starlinkloginapp.ui.screens.access.StileRegisterScreen
 import com.example.starlinkloginapp.ui.screens.access.StyledStartScreen
 import com.example.starlinkloginapp.ui.screens.galeria.GalleryScreen
+import com.example.starlinkloginapp.ui.screens.principal.PrincipalScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,9 +54,9 @@ fun AppNavigation() {
             StileRegisterScreen(authVM, navController)
             //RegisterScreen(authVM, navController)
         }
-        /*composable("principal") {
-            PrincipalScreen(navController)
-        }*/
+        composable("principal") {
+            PrincipalScreen(navController, authVM)
+        }
         composable("camera") {
             correo?.let {
                 CameraScreen(

@@ -19,11 +19,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,15 +52,21 @@ fun StileRegisterScreen(
     authVM: AuthViewModel = viewModel(),
     navController: NavHostController
 ) {
-    var nombre      by rememberSaveable { mutableStateOf("") }
-    var apellido    by rememberSaveable { mutableStateOf("") }
-    var usuario     by rememberSaveable { mutableStateOf("") }   // correo
-    var contraseña  by rememberSaveable { mutableStateOf("") }
-    val status      by authVM.status.collectAsState()
+    var nombre by rememberSaveable { mutableStateOf("") }
+    var apellido by rememberSaveable { mutableStateOf("") }
+    var usuario by rememberSaveable { mutableStateOf("") }
+    var contraseña by rememberSaveable { mutableStateOf("") }
+    val status by authVM.status.collectAsState()
 
+    var mostrarErrores by remember { mutableStateOf(false) }
+
+    val nombreError = mostrarErrores && nombre.isBlank()
+    val apellidoError = mostrarErrores && apellido.isBlank()
+    val usuarioError = mostrarErrores && usuario.isBlank()
+    val contraseñaError = mostrarErrores && contraseña.isBlank()
 
     Surface(
-        color    = Color(0xFF253334),
+        color = Color(0xFF253334),
         modifier = Modifier.fillMaxSize()
     ) {
         Box(Modifier.fillMaxSize()) {
@@ -79,6 +87,7 @@ fun StileRegisterScreen(
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
                 Image(
                     painter = painterResource(id = R.drawable.logotipo),
                     contentDescription = null,
@@ -90,12 +99,12 @@ fun StileRegisterScreen(
                 )
 
                 Text(
-                    text = "REGISTRASE",
+                    text = "REGISTRARSE",
                     style = TextStyle(
-                        fontSize   = 28.sp,
+                        fontSize = 28.sp,
                         fontFamily = AlegreyaFont,
                         fontWeight = FontWeight.SemiBold,
-                        color      = Color(0xff79939b)
+                        color = Color(0xff79939b)
                     ),
                     modifier = Modifier.align(Alignment.Start)
                 )
@@ -103,106 +112,111 @@ fun StileRegisterScreen(
                 Text(
                     text = "Regístrate gratis y comienza tu proceso de control y calidad",
                     style = TextStyle(
-                        fontSize   = 20.sp,
+                        fontSize = 20.sp,
                         fontFamily = AlegreyaSansFont,
-                        color      = Color(0xff79939b)
+                        color = Color(0xff79939b)
                     ),
                     modifier = Modifier
                         .align(Alignment.Start)
                         .padding(bottom = 24.dp)
                 )
 
+                // Nombre
                 OutlinedTextField(
                     value = nombre,
                     onValueChange = { nombre = it },
                     label = { Text("Nombre") },
+                    isError = nombreError,
                     singleLine = true,
+                    supportingText = {
+                        if (nombreError) Text(
+                            "Este campo es obligatorio.",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 6.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = Color(0xFF18779B),
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        focusedTextColor = Color(0xFF18779B),
-                        unfocusedTextColor = Color(0xFF18779B),
-                        focusedLabelColor = Color(0xFF18779B),
-                        unfocusedLabelColor = Color(0xFF18779B)
-                    )
+                    colors = defaultOutlinedColors(nombreError)
                 )
 
+                // Apellido
                 OutlinedTextField(
                     value = apellido,
                     onValueChange = { apellido = it },
                     label = { Text("Apellido") },
+                    isError = apellidoError,
                     singleLine = true,
+                    supportingText = {
+                        if (apellidoError) Text(
+                            "Este campo es obligatorio.",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 6.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = Color(0xFF18779B),
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        focusedTextColor = Color(0xFF18779B),
-                        unfocusedTextColor = Color(0xFF18779B),
-                        focusedLabelColor = Color(0xFF18779B),
-                        unfocusedLabelColor = Color(0xFF18779B)
-                    )
+                    colors = defaultOutlinedColors(apellidoError)
                 )
 
                 OutlinedTextField(
                     value = usuario,
                     onValueChange = { usuario = it },
                     label = { Text("Correo Electrónico") },
+                    isError = usuarioError,
                     singleLine = true,
+                    supportingText = {
+                        if (usuarioError) Text(
+                            "Este campo es obligatorio.",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 6.dp),
-                    shape         = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = Color.White,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White.copy(alpha = 1f)
-                    )
+                    shape = RoundedCornerShape(12.dp),
+                    colors = defaultOutlinedColors(usuarioError)
                 )
 
                 OutlinedTextField(
                     value = contraseña,
                     onValueChange = { contraseña = it },
                     label = { Text("Contraseña") },
-                    visualTransformation = PasswordVisualTransformation(),
+                    isError = contraseñaError,
                     singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    supportingText = {
+                        if (contraseñaError) Text(
+                            "Este campo es obligatorio.",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 6.dp),
-                    shape         = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = Color.White,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White.copy(alpha = 1f)
-                    )
+                    shape = RoundedCornerShape(12.dp),
+                    colors = defaultOutlinedColors(contraseñaError)
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
 
                 Button(
                     onClick = {
-                        authVM.signup(
-                            nombre.trim(),
-                            apellido.trim(),
-                            usuario.trim(),
-                            contraseña
-                        )
+                        mostrarErrores = true
+                        if (!nombreError && !apellidoError && !usuarioError && !contraseñaError) {
+                            authVM.signup(
+                                nombre.trim(),
+                                apellido.trim(),
+                                usuario.trim(),
+                                contraseña
+                            )
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -212,42 +226,40 @@ fun StileRegisterScreen(
                     Text("Registrarse")
                 }
 
-                when {
-                    status == "REGISTERED" -> {
-                        LaunchedEffect(Unit) {
-                            navController.popBackStack()
-                            authVM.clearStatus()
-                        }
-                    }
-                    !status.isNullOrEmpty() -> {
-                        Text(
-                            text  = "Error: $status",
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
+                if (!status.isNullOrEmpty() && status != "REGISTERED" && !nombreError && !apellidoError && !usuarioError && !contraseñaError) {
+                    Text(
+                        text = "Error: $status",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+
+                if (status == "REGISTERED") {
+                    LaunchedEffect(Unit) {
+                        navController.popBackStack()
+                        authVM.clearStatus()
                     }
                 }
 
                 Row(
-                    modifier = Modifier
-                        .padding(top = 32.dp, bottom = 52.dp)
+                    modifier = Modifier.padding(top = 32.dp, bottom = 52.dp)
                 ) {
                     Text(
                         text = "¿Ya tienes una cuenta? ",
                         style = TextStyle(
-                            fontSize   = 18.sp,
+                            fontSize = 18.sp,
                             fontFamily = AlegreyaSansFont,
-                            color      = Color.White
+                            color = Color.White
                         )
                     )
                     Text(
                         text = "Inicia sesión",
                         style = TextStyle(
-                            fontSize   = 18.sp,
+                            fontSize = 18.sp,
                             fontFamily = AlegreyaSansFont,
                             fontWeight = FontWeight.Bold,
-                            color      = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary
                         ),
                         modifier = Modifier.clickable {
                             navController.navigate("login")
@@ -258,3 +270,18 @@ fun StileRegisterScreen(
         }
     }
 }
+
+@Composable
+fun defaultOutlinedColors(isError: Boolean): TextFieldColors {
+    return OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error else Color.White,
+        cursorColor = MaterialTheme.colorScheme.primary,
+        focusedTextColor = Color.White,
+        unfocusedTextColor = Color.White,
+        focusedLabelColor = if (isError) MaterialTheme.colorScheme.error else Color.White,
+        unfocusedLabelColor = if (isError) MaterialTheme.colorScheme.error else Color.White
+    )
+}
+
+

@@ -44,6 +44,11 @@ class AuthViewModel: ViewModel(){
         }
     }
 
+    fun logout(){
+        _correoUsuario.value = null
+        _status.value = null
+    }
+
     fun clearStatus(){
         _status.value = null
     }
