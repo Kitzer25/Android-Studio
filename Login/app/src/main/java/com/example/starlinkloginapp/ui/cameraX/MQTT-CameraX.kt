@@ -213,7 +213,7 @@ private fun capturar(
             override fun onImageSaved(res: ImageCapture.OutputFileResults) {
 
                 /* ---- Construir payload JSON con Moshi ---- */
-                val nombreImg = "img_${System.currentTimeMillis()}"
+                val nombreImg = "img_${System.currentTimeMillis()}.jpg"
                 val base64 = Base64.encodeToString(photoFile.readBytes(), Base64.NO_WRAP)
                 val payload = ImagenPayload(
                     correoUsuario,
