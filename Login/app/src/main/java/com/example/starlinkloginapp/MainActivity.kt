@@ -15,11 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.starlinkloginapp.ui.ViewModel.AuthViewModel
 import com.example.starlinkloginapp.ui.cameraX.CameraScreen
-import com.example.starlinkloginapp.ui.screens.access.LoginScreen
-import com.example.starlinkloginapp.ui.screens.access.RegisterScreen
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.starlinkloginapp.ui.ViewModel.ImageViewModel
 import com.example.starlinkloginapp.ui.screens.access.StileLoginScreen
 import com.example.starlinkloginapp.ui.screens.access.StileRegisterScreen
 import com.example.starlinkloginapp.ui.screens.access.StyledStartScreen
@@ -41,7 +37,6 @@ fun AppNavigation() {
     val navController = rememberNavController()
 
     val authVM: AuthViewModel = viewModel()
-    val imageVM: ImageViewModel = viewModel()
 
     val correo by authVM.correoUsuario.collectAsState()
 
@@ -75,7 +70,8 @@ fun AppNavigation() {
             }
         }
         composable("galery"){
-            GalleryScreen(imageVM, navController)
+            GalleryScreen(
+                navController)
         }
     }
 }

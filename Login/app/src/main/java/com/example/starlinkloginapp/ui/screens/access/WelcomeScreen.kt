@@ -128,7 +128,7 @@ fun StyledStartScreen(
                             color      = MaterialTheme.colorScheme.primary
                         ),
                         modifier = Modifier.clickable {
-                            navController.navigate("login")
+                            navController.navigate("register")
                         }
                     )
                 }

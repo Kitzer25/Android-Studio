@@ -45,6 +45,12 @@ android {
 }
 
 dependencies {
+    /* Coil */
+    implementation(libs.coil.compose)
+
+    /* activityViewModel*/
+    implementation(libs.androidx.activity.compose.v180)
+
     /* CameraX */
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)

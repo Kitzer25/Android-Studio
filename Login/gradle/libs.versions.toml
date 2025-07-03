@@ -1,8 +1,12 @@
 [versions]
 activityComposeVersion = "1.8.2"
 agp = "8.11.0"
+androidxActivityCompose = "1.8.0"
 cameraLifecycle = "1.4.2"
+coilCompose = "2.7.0"
 converterMoshi = "2.11.0"
+hiltAndroid = "2.56.2"
+hiltNavigationCompose = "1.2.0"
 kotlin = "2.0.21"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -26,6 +30,7 @@ retrofit = "2.11.0"
 ui = "1.6.4"
 
 [libraries]
+androidx-activity-compose-v180 = { module = "androidx.activity:activity-compose", version.ref = "androidxActivityCompose" }
 androidx-activity-compose-v182 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraLifecycle" }
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraLifecycle" }
@@ -33,10 +38,15 @@ androidx-camera-extensions = { module = "androidx.camera:camera-extensions", ver
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraLifecycle" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraLifecycle" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltNavigationCompose" }
+androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-localbroadcastmanager = { module = "androidx.localbroadcastmanager:localbroadcastmanager", version.ref = "localbroadcastmanager" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
